@@ -1,8 +1,9 @@
-//window.alert('Hello from JS')
+//window.alert('Hello from Javascript...')
+//window.alert(`pathname is ${window.location.pathname}`)
 const global = {
   currentPage: window.location.pathname,
   api: {
-    apiUrl: 'https://pokeapi.co/api/v2/pokemon',
+    apiUrl: 'https://pokeapi.co/api/v2',
   },
 }
 
@@ -34,9 +35,14 @@ const formatNumber = (number) => {
 
 // Fetch the pokemon from the API
 const fetchAPI = async (url) => {
+  console.log(url)
   const API_URL = url === '' ? global.api.apiUrl : url
 
   const result = await fetch(`${API_URL}`)
+
+  if (result.status === 404) {
+    return showNoData()
+  }
 
   const data = await result.json()
 
@@ -46,7 +52,8 @@ const fetchAPI = async (url) => {
 }
 
 // Fetch data of Pokemon
-const getPokemonDetails = async (url) => {
+/*const getPokemonDetails = async (url) => {
+  //console.log(url)
   const result = await fetch(`${url}`)
   //console.log(result)
   if (result.status === 404) {
@@ -55,7 +62,7 @@ const getPokemonDetails = async (url) => {
   const data = await result.json()
 
   return data
-}
+}*/
 
 const bgType = (type) => {
   const typeStyles = {
@@ -105,15 +112,13 @@ const getPokemonType = (type) => {
     stellar: 19,
   }
 
-  return displayPokemonCard(
-    `https://pokeapi.co/api/v2/type/${pokemonType[type]}`
-  )
+  return displayPokemonCard(`${global.api.apiUrl}/type/${pokemonType[type]}`)
   //console.log('Type in number: ', pokemonType[type])
 }
 
 //fetchAPI()
 
-// Show Pokemon data in the browser
+// Show Pokemon lists in the browser
 const displayPokemonCard = async (url) => {
   const { results, next, previous, pokemon } = await fetchAPI(url)
   //console.log(url)
@@ -139,8 +144,10 @@ const displayPokemonCard = async (url) => {
   displayButtonSection(previous, next)
 }
 
+// Show pokemon information
 const showPokemonDetail = async (url) => {
-  const { sprites, types, forms } = await getPokemonDetails(url)
+  console.log(url)
+  const { sprites, types, forms } = await fetchAPI(url) //getPokemonDetails(url)
   //console.log(forms[0])
   const div = document.createElement('div')
   div.classList.add(
@@ -189,12 +196,18 @@ const showPokemonDetail = async (url) => {
   pkCard.appendChild(div)
 }
 
+// Show Previous & Next button
 const displayButtonSection = (prevUrl, nextUrl) => {
   //console.log('previous', prevUrl)
   //console.log('next', nextUrl)
 
   const prevBtn = document.createElement('button')
   prevBtn.className = 'p-5 w-1/12'
+  /*if (window.innerWidth <= 768) {
+    prevBtn.textContent = '<'
+  } else {
+    prevBtn.textContent = 'Previous'
+  }*/
   prevBtn.textContent = 'Previous'
   if (!prevUrl) {
     prevBtn.disabled = true
@@ -215,6 +228,11 @@ const displayButtonSection = (prevUrl, nextUrl) => {
   const nextBtn = document.createElement('button')
   nextBtn.className = 'p-5 w-1/12'
   nextBtn.textContent = 'Next'
+  // if (window.innerWidth <= 768) {
+  //   nextBtn.textContent = '>'
+  // } else {
+  //   nextBtn.textContent = 'Next'
+  // }
   if (!nextUrl) {
     nextBtn.disabled = true
   } else {
@@ -242,15 +260,16 @@ const onChangeInput = async () => {
     //console.log(inputElement.value)
     destroySectionCard()
     showPokemonDetail(
-      `https://pokeapi.co/api/v2/pokemon/${inputElement.value.toLowerCase()}`
+      `${global.api.apiUrl}/pokemon/${inputElement.value.toLowerCase()}`
     )
   } else {
-    displayPokemonCard('')
+    displayPokemonCard(`${global.api.apiUrl}/pokemon/`)
   }
 }
 
 const onClickType = async (type) => {
   //console.log('Types is: ', type)
+  document.getElementById('name_input').value = ''
   getPokemonType(type)
   //toggleFilter()
   document.getElementById('filter').className =
@@ -271,13 +290,12 @@ const destroySectionCard = () => {
 
 const showNoData = () => {
   const div = document.createElement('div')
-  div.classList.add(
-    ...'flex justify-center items-center col-span-1 bg-slate-600 p-5'.split(' ')
-  )
+  div.className = 'flex justify-center items-center col-span-1 bg-slate-600 p-5'
 
   div.innerHTML = `
     <h1 class='text-3xl text-rose-500'>No Pokemon found!!!</h1>
   `
+
   const pkCard = document.querySelector('#pokemon-card')
   pkCard.className = 'flex justify-center items-center'
 
@@ -297,7 +315,7 @@ const init = () => {
   switch (global.currentPage) {
     case '/':
     case '/index.html':
-      displayPokemonCard('')
+      displayPokemonCard(`${global.api.apiUrl}/pokemon`)
       toggleFilter()
       break
     default:
